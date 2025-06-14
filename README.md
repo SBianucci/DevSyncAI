@@ -136,6 +136,10 @@ Se recomienda configurar pre-commit hooks para ejecutar las herramientas de desa
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
+
+# Trigger redeploy
+
+
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles. 
