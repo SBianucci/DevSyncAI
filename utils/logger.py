@@ -98,25 +98,17 @@ class DevSyncLogger:
         """
         return logging.getLogger(self.name)
 
-def setup_logger(
-    name: str = "devsync",
-    level: int = logging.INFO,
-    log_file: Optional[str] = None
-) -> logging.Logger:
+def setup_logger(name: str = "devsync", level: int = logging.INFO):
     """
-    Función helper para configurar rápidamente un logger.
-
-    Args:
-        name (str): Nombre del logger
-        level (int): Nivel de logging
-        log_file (Optional[str]): Ruta opcional para archivo de log
-
-    Returns:
-        logging.Logger: Logger configurado
+    Configura y retorna un logger básico reutilizable.
     """
-    logger = DevSyncLogger(name=name, level=level)
-    
-    if log_file:
-        logger.add_file_handler(log_file)
-        
-    return logger.get_logger() 
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    logger.setLevel(level)
+    return logger 
