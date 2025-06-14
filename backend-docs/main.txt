@@ -30,6 +30,11 @@ Este archivo es el entrypoint principal de la API FastAPI para DevSync AI.
   - Retorna estado de dependencias
   - Métricas básicas del sistema
 
+- `POST /test-webhook`:
+  - Recibe cualquier payload y lo loguea en consola.
+  - No valida firma ni secret.
+  - Útil para probar si GitHub puede llegar a tu backend y si los logs aparecen en Vercel.
+
 ## Lógica de Procesamiento
 1. Validación de Webhook:
    - Verifica firma HMAC-SHA256
@@ -81,4 +86,9 @@ Este archivo es el entrypoint principal de la API FastAPI para DevSync AI.
 - Usa async/await para operaciones I/O
 - Mantiene estado mínimo
 - Documentación OpenAPI disponible en `/docs`
-- Métricas disponibles en `/metrics` 
+- Métricas disponibles en `/metrics`
+
+Secret temporal sugerido para pruebas:
+GITHUB_WEBHOOK_SECRET=devsync-temporal-123456
+
+Recuerda borrar este endpoint y el secret temporal cuando termines de debuggear. 

@@ -4,7 +4,7 @@ Proporciona endpoints para recibir webhooks de GitHub y generar
 documentación y feedback usando IA.
 """
 
-from fastapi import FastAPI, Request, HTTPException, Header, Depends, status
+from fastapi import FastAPI, Request, HTTPException, Header, Depends, status, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import hmac
@@ -16,6 +16,7 @@ import re
 from typing import Optional, Dict, Any
 from datetime import datetime
 import requests
+from pydantic import BaseModel
 
 # Importar servicios y utilidades
 from services.github_service import GitHubService
@@ -285,4 +286,61 @@ async def jira_me():
         return response.json()
     except Exception as e:
         logger.error(f"Error al obtener usuario de Jira: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error al obtener usuario de Jira") 
+        raise HTTPException(status_code=500, detail="Error al obtener usuario de Jira")
+
+@app.get("/jira/issues")
+async def get_jira_issues(project_key: str = Query(..., description="Clave del proyecto Jira")):
+    """
+    Devuelve los issues activos (no cerrados) de un proyecto Jira.
+    """
+    try:
+        jql = f"project={project_key} AND statusCategory!=Done"
+        url = f"{jira_service.base_url}/rest/api/3/search?jql={jql}"
+        response = requests.get(url, headers=jira_service.headers, auth=jira_service.auth)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error al obtener issues de Jira: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al obtener issues de Jira")
+
+@app.get("/jira/issue/{issue_key}/transitions")
+async def get_issue_transitions(issue_key: str):
+    """
+    Devuelve las transiciones posibles de un issue Jira.
+    """
+    try:
+        url = f"{jira_service.base_url}/rest/api/3/issue/{issue_key}/transitions"
+        response = requests.get(url, headers=jira_service.headers, auth=jira_service.auth)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error al obtener transiciones de Jira: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al obtener transiciones de Jira")
+
+class TransitionRequest(BaseModel):
+    status_id: str
+
+@app.post("/jira/issue/{issue_key}/transition")
+async def transition_issue(issue_key: str, body: TransitionRequest):
+    """
+    Cambia el status de un issue Jira al status_id indicado.
+    """
+    try:
+        url = f"{jira_service.base_url}/rest/api/3/issue/{issue_key}/transitions"
+        payload = {"transition": {"id": body.status_id}}
+        response = requests.post(url, headers=jira_service.headers, auth=jira_service.auth, json=payload)
+        response.raise_for_status()
+        return {"message": "Transición realizada con éxito", "response": response.json()}
+    except Exception as e:
+        logger.error(f"Error al transicionar issue en Jira: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al transicionar issue en Jira")
+
+# --- SECRET TEMPORAL DE PRUEBA ---
+# Usa este valor como Secret en GitHub y en Vercel para pruebas temporales:
+# GITHUB_WEBHOOK_SECRET=devsync-temporal-123456
+
+@app.post("/test-webhook")
+async def test_webhook(request: Request):
+    data = await request.body()
+    logger.info(f"Payload recibido en /test-webhook: {data}")
+    return {"ok": True} 
