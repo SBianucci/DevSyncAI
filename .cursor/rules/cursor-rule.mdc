@@ -1,0 +1,112 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# cursor_rules.md para el Proyecto DevSync AI (Hackathon MVP - Integración Real)
+
+## 1. Contexto General del Proyecto
+
+Hola equipo, somos **DevSync AI**. En las próximas 24 horas de la hackathon, vamos a construir un **MVP headless (sin UI ni base de datos propia)**. Nuestro objetivo es automatizar la actualización de estados de tareas en **Jira** y la generación de **documentación técnica y no técnica** a partir del código, integrándonos directamente con **GitHub** y usando la **IA de Vercel (Vercel AI Gateway)**.
+
+**Nuestro Norte:** Queremos que los jueces vean cómo los cambios en GitHub impactan **directamente** en Jira y cómo la IA genera documentación valiosa, haciendo que los equipos digan: "¡¿Cómo vivíamos sin esto antes?!".
+
+---
+
+## 2. El Problema a Resolver
+
+Hoy, los Project Managers y Product Owners de startups pierden mucho tiempo actualizando tareas manualmente en Jira y generando documentación, lo que genera falta de transparencia y una carga administrativa enorme. **DevSync AI** viene a eliminar ese dolor automatizando todo el ciclo.
+
+---
+
+## 3. Stack Tecnológico a Utilizar
+
+Vamos a ser rápidos y eficientes con este stack:
+
+* **Backend (Lógica Central):** **Python con FastAPI**. Ideal para APIs rápidas y funciones serverless.
+* **IA:** **Vercel AI Gateway / Vercel AI SDK**. Aprovecharemos los tokens ilimitados del sponsor para la generación de texto inteligente.
+* **Orquestación/Disparadores:** **GitHub Webhooks** y **GitHub Actions**.
+* **Integraciones:** **APIs reales de GitHub y Jira**.
+* **Despliegue:** **Vercel** (para nuestras funciones serverless de FastAPI).
+
+---
+
+## 4. Integraciones y Detalles Clave (¡Aquí está la Magia Real!)
+
+Nuestra fortaleza es la integración real y fluida. ¡No mockearemos nada de esto en la demo!
+
+* **GitHub API:**
+    * **Activadores:** Configuraremos **Webhooks reales en GitHub** para que tu endpoint en Vercel reciba eventos de `create` (para ramas), `pull_request.opened` y `pull_request.closed` (filtrando cuando `merged=true`).
+    * **Acciones:** Necesitamos leer descripciones y títulos de PRs, mensajes de commits y, **críticamente, el `diff` del código del PR**. También publicaremos **comentarios en los PRs**.
+    * **Autenticación:** Usaremos un **Personal Access Token (PAT) de GitHub** con los permisos adecuados (`repo`, `pull_requests`, `issues`). Este token estará en las variables de entorno de Vercel.
+
+* **Jira API:**
+    * **Acciones:** Actualizaremos **estados de tareas** (transiciones de workflow), y si el tiempo lo permite y la API de Jira lo permite fácilmente, añadiremos **comentarios o adjuntaremos la documentación generada por IA** directamente a la tarea.
+    * **Lectura:** Necesitaremos leer detalles de las tareas por su ID.
+    * **Autenticación:** Usaremos un **API Token de Jira** y el email de usuario, ambos en las variables de entorno de Vercel, junto con la URL base de la instancia de Jira.
+
+* **Vercel AI Gateway:**
+    * **Uso:** Será nuestro motor para enviar prompts y recibir texto generado por la IA (summaries, comentarios, etc.).
+    * **Autenticación:** La clave de API se obtendrá de las variables de entorno de Vercel.
+
+---
+
+## 5. Módulos y Flujo del MVP (¡El Core del Proyecto!)
+
+Vamos a construir un backend ligero y muy enfocado.
+
+### 5.1. Backend (FastAPI - `main.py`, `services/`)
+
+* **Estructura:** `main.py` será la aplicación FastAPI principal. Tendremos una carpeta `services/` con módulos para `github_service.py`, `jira_service.py` y `ai_service.py` para mantener todo ordenado.
+* **Endpoints para GitHub Webhooks (RECEPTORES):**
+    * `POST /github/webhook`: Este será nuestro endpoint principal. Recibirá todos los payloads de los webhooks de GitHub. Deberá validar el `X-GitHub-Signature` (Cursor, ¡ayúdanos con esto para seguridad!) y luego distribuir el payload a las funciones de manejo específicas.
+        * `handle_branch_create(payload)`:
+            * Extraerá el **`JIRA-ID`** del nombre de la rama (ej. `feature/JIRA-123-nombre-tarea`) usando expresiones regulares.
+            * Llamará a `jira_service.transition_issue(JIRA_ID, "In Progress")`.
+        * `handle_pull_request_opened(payload)`:
+            * Extraerá el **`JIRA-ID`** del título del PR.
+            * Llamará a `jira_service.transition_issue(JIRA_ID, "In Review")`.
+            * Llamará a `ai_service.generate_pr_feedback(pr_description, pr_title)` para obtener un comentario inteligente.
+            * Publicará este comentario en el PR de GitHub usando `github_service.add_pr_comment(pr_number, comment_text)`.
+        * `handle_pull_request_merged(payload)`:
+            * Extraerá el **`JIRA-ID`** del PR.
+            * Llamará a `jira_service.transition_issue(JIRA_ID, "Completed")`.
+            * Obtendrá la descripción del PR, mensajes de commits y, **muy importante, el `diff` del código del PR** a través de `github_service.get_pr_diff(pr_number)`.
+            * Llamará a `ai_service.generate_document(content, "technical")` y `ai_service.generate_document(content, "non-technical")` usando los datos del PR y el `diff`.
+            * Publicará la documentación generada. **Prioridad:** Como comentarios nuevos en el PR de GitHub. **Si es factible:** También como comentarios o adjuntos en la tarea de Jira.
+
+### 5.2. Módulos de Servicio (`services/`)
+
+* `github_service.py`: Contendrá funciones para interactuar **directamente** con la API de GitHub (obtener PRs, diffs, añadir comentarios).
+* `jira_service.py`: Contendrá funciones para interactuar **directamente** con la API de Jira (transicionar estados, añadir comentarios/adjuntos).
+* `ai_service.py`: Tendrá las funciones que se comunican con Vercel AI Gateway. Aquí definiremos los **prompts clave** para:
+    * `generate_pr_feedback(description, title)`: Para el comentario inicial en el PR.
+    * `generate_document(content, doc_type)`: Para generar el texto del documento (técnico/no técnico). Los prompts deben ser específicos para cada `doc_type`.
+
+---
+
+## 6. Puntos Clave a Contemplar (¡La Guía para el Éxito!)
+
+* **¡Integración Real es la Prioridad Máxima!** Asegúrense de que las credenciales de GitHub y Jira estén listas, configuradas en Vercel y con los permisos adecuados.
+* **Configuración de Webhooks de GitHub:** Este es un paso fundamental. La URL de tu app en Vercel debe ser la que GitHub invoca. Cursor, ayúdanos con los ejemplos de cómo configurar esto en el panel de GitHub.
+* **Validación de `X-GitHub-Signature`:** Por seguridad, implementemos esta validación en el endpoint `/github/webhook` para asegurar que las peticiones vengan de GitHub.
+* **Refinar Prompts de IA:** Dediquen tiempo a iterar sobre los prompts en `ai_service.py`. Esto es lo que hará que la magia de la IA sea *realmente* impresionante.
+* **Manejo Básico de Errores:** Incluyan `try-except` básicos y logueo para que podamos depurar rápidamente si algo falla en la interacción con las APIs externas.
+* **Variables de Entorno:** Todas las credenciales deben estar seguras en las variables de entorno de Vercel.
+
+---
+
+## 7. Desafíos Potenciales
+
+* **Configuración Inicial:** Conectar los webhooks reales de GitHub con tu app de Vercel puede tomar un poco de tiempo.
+* **Permisos de API:** Asegúrense de que los PATs y tokens tengan los permisos exactos necesarios (ni más, ni menos).
+* **Procesamiento de Grandes Payloads de GitHub:** Los payloads de los webhooks pueden ser muy grandes. El código debe ser eficiente al procesarlos.
+* **Calidad y Contexto del Diff del Código para la IA:** Alimentar a la IA con el `diff` completo del código del PR es potente, pero el `diff` puede ser muy extenso. Habrá que considerar el tamaño del contexto de la IA y cómo resumir el `diff` si es demasiado largo.
+* **Rate Limiting de APIs Externas:** Aunque Vercel te da tokens ilimitados para IA, GitHub y Jira tienen sus propios límites de rate limiting. Para la hackathon, con un uso limitado, probablemente no sea un problema.
+
+## 8. Documentacion
+
+* Cada vez que crees un archivo, guardar en una carpeta que si no existe creala de backend-docs un txt con la documetancion del archivo creada
+
+
+**¡Vamos con todo, DevSync AI! Enfóquense en el flujo de valor y en la demostración en vivo. ¡Esto va a ser épico!**
