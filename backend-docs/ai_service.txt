@@ -1,0 +1,46 @@
+# Documentación de ai_service.py
+
+Este archivo implementa el servicio de integración con la IA de Vercel para generación de texto.
+
+## Propósito
+- Generar feedback inteligente y detallado para Pull Requests usando IA.
+- Generar documentación técnica y no técnica a partir de los cambios de código.
+- Proporcionar análisis estructurado y recomendaciones basadas en IA.
+
+## Características Principales
+- Rate limiting para control de peticiones a la API
+- Validación de tamaño de entrada para optimizar costos
+- Manejo robusto de errores y excepciones
+- Logging detallado de operaciones
+- Prompts optimizados para diferentes casos de uso
+
+## Métodos Principales
+- `generate_pr_feedback(description, title)`: 
+  - Genera feedback estructurado para un PR
+  - Incluye: resumen de cambios, análisis técnico, buenas prácticas, áreas de mejora y preguntas
+  - Valida y trunca entradas largas
+  - Formato markdown con secciones claramente definidas
+
+- `generate_document(content, doc_type)`: 
+  - Genera documentación técnica o no técnica según el tipo
+  - Documentación técnica: arquitectura, impacto, implementación, riesgos y mantenimiento
+  - Documentación no técnica: resumen ejecutivo, beneficios, impacto en usuarios y próximos pasos
+  - Incluye diagramas, ejemplos y métricas cuando es relevante
+
+## Manejo de Errores
+- `AIServiceError`: Excepción base para errores del servicio
+- `ContentTooLargeError`: Para contenido que excede límites permitidos
+- Manejo específico de timeouts y errores HTTP
+- Respuestas de error descriptivas y útiles
+
+## Límites y Configuración
+- Límite de descripción de PR: 4000 caracteres
+- Límite de título de PR: 200 caracteres
+- Límite de diff: 8000 caracteres
+- Timeout de peticiones: 30 segundos
+
+## Notas
+- Utiliza la API de Vercel AI Gateway y requiere la API Key en variables de entorno
+- Implementa rate limiting para prevenir sobrecarga
+- Logging centralizado para monitoreo y debugging
+- Prompts optimizados basados en feedback real 

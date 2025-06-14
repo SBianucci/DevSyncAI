@@ -1,0 +1,59 @@
+# Documentación de jira_service.py
+
+Este archivo implementa el servicio de integración con la API de Jira.
+
+## Propósito
+- Transicionar tareas de Jira entre estados según eventos de GitHub
+- Añadir comentarios a tareas de Jira
+- Sincronizar estados entre GitHub y Jira
+- Gestionar la integración bidireccional
+
+## Características Principales
+- Mapeo automático de estados entre GitHub y Jira
+- Manejo de errores HTTP y de API
+- Rate limiting para peticiones a Jira
+- Logging detallado de operaciones
+- Soporte para diferentes tipos de eventos
+
+## Métodos Principales
+- `get_issue_transitions(issue_id)`: 
+  - Obtiene las transiciones posibles para una tarea
+  - Incluye validación de permisos
+  - Maneja errores de API y timeouts
+
+- `transition_issue(issue_id, transition_name)`: 
+  - Realiza la transición de estado de una tarea
+  - Valida que la transición sea válida
+  - Maneja errores de permisos y API
+  - Registra la transición en el log
+
+- `add_comment(issue_id, comment)`: 
+  - Añade un comentario a la tarea en Jira
+  - Soporta formato markdown
+  - Incluye metadatos de la sincronización
+  - Maneja errores de permisos
+
+- `get_issue_details(issue_id)`: 
+  - Obtiene los detalles completos de una tarea
+  - Incluye estado actual, campos personalizados y metadatos
+  - Maneja errores de API y timeouts
+
+## Manejo de Errores
+- Manejo específico de errores de API de Jira
+- Reintentos automáticos para errores temporales
+- Logging detallado de errores y excepciones
+- Respuestas de error descriptivas
+
+## Configuración
+- Requiere credenciales de Jira (email + API token)
+- URL base de Jira configurable
+- Límites de rate limiting configurables
+- Timeouts personalizables
+- Mapeo de estados configurable
+
+## Notas
+- Utiliza autenticación básica (email + API token) y la URL base de Jira desde variables de entorno
+- Implementa rate limiting para respetar límites de Jira
+- Logging centralizado para monitoreo
+- Soporte para diferentes tipos de eventos de GitHub
+- Mapeo configurable de estados entre sistemas 

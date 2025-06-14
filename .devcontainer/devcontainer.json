@@ -1,0 +1,23 @@
+{
+    "name": "DevSync AI Development",
+    "dockerFile": "Dockerfile",
+    "forwardPorts": [8000],
+    "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens"
+    ],
+    "postCreateCommand": "pip install -r requirements.txt && pre-commit install"
+} 

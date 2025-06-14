@@ -9,6 +9,10 @@ DevSync AI es una herramienta que automatiza la actualización de estados de tar
 - Generación de documentación técnica y no técnica usando IA
 - Feedback automático en Pull Requests
 - Validación de seguridad para webhooks de GitHub
+- Rate limiting para APIs externas
+- Logging centralizado
+- Validación de configuración con Pydantic
+- Cobertura de pruebas automatizada
 
 ## Requisitos
 
@@ -24,11 +28,25 @@ DevSync AI es una herramienta que automatiza la actualización de estados de tar
    ```bash
    pip install -r requirements.txt
    ```
-3. Copia `.env.example` a `.env` y configura las variables de entorno:
-   ```bash
-   cp .env.example .env
+3. Crea un archivo `.env` con las siguientes variables:
    ```
-4. Configura las variables de entorno en el archivo `.env`
+   # GitHub
+   GITHUB_TOKEN=your_github_token
+   GITHUB_REPO=your_github_repo
+   GITHUB_WEBHOOK_SECRET=your_webhook_secret
+
+   # Jira
+   JIRA_BASE_URL=https://your-domain.atlassian.net
+   JIRA_EMAIL=your_email@example.com
+   JIRA_API_TOKEN=your_jira_api_token
+
+   # Vercel AI
+   VERCEL_AI_API_KEY=your_vercel_ai_api_key
+
+   # App
+   APP_ENV=development
+   LOG_LEVEL=INFO
+   ```
 
 ## Variables de Entorno
 
@@ -39,6 +57,8 @@ DevSync AI es una herramienta que automatiza la actualización de estados de tar
 - `JIRA_EMAIL`: Email de tu cuenta de Jira
 - `JIRA_API_TOKEN`: Token de API de Jira
 - `VERCEL_AI_API_KEY`: Clave de API de Vercel AI Gateway
+- `APP_ENV`: Entorno de la aplicación (development/production)
+- `LOG_LEVEL`: Nivel de logging (DEBUG/INFO/WARNING/ERROR)
 
 ## Uso
 
@@ -64,11 +84,49 @@ DevSync AI es una herramienta que automatiza la actualización de estados de tar
 
 ## Desarrollo
 
-Para ejecutar localmente:
+### Ejecutar localmente
 
 ```bash
 uvicorn main:app --reload
 ```
+
+### Herramientas de desarrollo
+
+El proyecto incluye varias herramientas para mantener la calidad del código:
+
+- **Black**: Formateador de código
+  ```bash
+  black .
+  ```
+
+- **isort**: Organizador de imports
+  ```bash
+  isort .
+  ```
+
+- **flake8**: Linter
+  ```bash
+  flake8
+  ```
+
+- **pytest**: Tests y cobertura
+  ```bash
+  pytest
+  ```
+
+### Pre-commit hooks
+
+Se recomienda configurar pre-commit hooks para ejecutar las herramientas de desarrollo automáticamente antes de cada commit. Para configurarlos:
+
+1. Instala pre-commit:
+   ```bash
+   pip install pre-commit
+   ```
+
+2. Instala los hooks:
+   ```bash
+   pre-commit install
+   ```
 
 ## Contribuir
 

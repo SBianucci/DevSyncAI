@@ -1,0 +1,84 @@
+# Documentación de main.py
+
+Este archivo es el entrypoint principal de la API FastAPI para DevSync AI.
+
+## Propósito
+- Orquestar la recepción de webhooks de GitHub y distribuir la lógica a los servicios de integración
+- Validar la firma de seguridad de GitHub
+- Extraer el ID de Jira de ramas y PRs
+- Gestionar la integración entre GitHub, Jira y servicios de IA
+- Proporcionar endpoints de monitoreo y salud
+
+## Características Principales
+- Validación robusta de webhooks
+- Manejo de errores centralizado
+- Logging detallado de operaciones
+- Rate limiting global
+- Middleware de seguridad
+- Documentación automática con Swagger/OpenAPI
+
+## Endpoints
+- `POST /github/webhook`: 
+  - Recibe eventos de GitHub
+  - Valida firma de seguridad
+  - Procesa diferentes tipos de eventos
+  - Retorna estado de la operación
+
+- `GET /health`: 
+  - Health check del sistema
+  - Verifica conexión con servicios externos
+  - Retorna estado de dependencias
+  - Métricas básicas del sistema
+
+## Lógica de Procesamiento
+1. Validación de Webhook:
+   - Verifica firma HMAC-SHA256
+   - Valida formato del payload
+   - Registra evento en log
+
+2. Extracción de JIRA-ID:
+   - Analiza nombres de ramas
+   - Procesa títulos de PR
+   - Usa regex optimizado
+   - Maneja múltiples formatos
+
+3. Procesamiento de Eventos:
+   - **Creación de rama:**
+     - Mueve tarea a "In Progress"
+     - Registra timestamp
+     - Notifica a stakeholders
+
+   - **PR abierto:**
+     - Mueve tarea a "In Review"
+     - Genera feedback con IA
+     - Publica comentario en PR
+     - Notifica revisores
+
+   - **PR mergeado:**
+     - Mueve tarea a "Completed"
+     - Obtiene diff completo
+     - Genera documentación técnica
+     - Genera documentación no técnica
+     - Publica documentación en PR
+     - Actualiza tarea en Jira
+
+## Manejo de Errores
+- Errores HTTP específicos
+- Respuestas JSON detalladas
+- Logging de errores
+- Reintentos automáticos
+- Notificaciones de fallos
+
+## Configuración
+- Variables de entorno para credenciales
+- Configuración de rate limiting
+- Timeouts de servicios
+- Niveles de logging
+- Políticas de retry
+
+## Notas
+- Implementa patrones de diseño para escalabilidad
+- Usa async/await para operaciones I/O
+- Mantiene estado mínimo
+- Documentación OpenAPI disponible en `/docs`
+- Métricas disponibles en `/metrics` 

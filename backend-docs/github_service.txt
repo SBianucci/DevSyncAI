@@ -1,0 +1,55 @@
+# Documentación de github_service.py
+
+Este archivo implementa el servicio de integración con la API de GitHub.
+
+## Propósito
+- Obtener información y diffs de Pull Requests
+- Publicar comentarios en PRs
+- Validar webhooks de GitHub
+- Gestionar la interacción con repositorios
+
+## Características Principales
+- Validación de firmas de webhook para seguridad
+- Manejo de errores HTTP y de API
+- Rate limiting para peticiones a GitHub
+- Logging detallado de operaciones
+- Soporte para diferentes tipos de eventos de webhook
+
+## Métodos Principales
+- `get_pr_diff(pr_number)`: 
+  - Obtiene el diff de un Pull Request
+  - Maneja errores de API y timeouts
+  - Retorna el diff en formato texto
+
+- `add_pr_comment(pr_number, comment)`: 
+  - Publica un comentario en el PR
+  - Soporta formato markdown
+  - Maneja errores de permisos y API
+
+- `get_pr_details(pr_number)`: 
+  - Obtiene los detalles completos de un PR
+  - Incluye título, descripción, estado y metadatos
+  - Maneja paginación para PRs grandes
+
+- `verify_webhook_signature(payload, signature)`: 
+  - Valida la firma del webhook de GitHub
+  - Previene ataques de falsificación
+  - Utiliza HMAC-SHA256
+
+## Manejo de Errores
+- Manejo específico de errores de API de GitHub
+- Reintentos automáticos para errores temporales
+- Logging detallado de errores y excepciones
+- Respuestas de error descriptivas
+
+## Configuración
+- Requiere GitHub Personal Access Token (PAT)
+- Configuración de nombre de repositorio
+- Límites de rate limiting configurables
+- Timeouts personalizables
+
+## Notas
+- Utiliza autenticación por token (PAT) y el nombre del repo desde variables de entorno
+- Implementa rate limiting para respetar límites de GitHub
+- Logging centralizado para monitoreo
+- Soporte para webhooks de diferentes eventos 
