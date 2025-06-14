@@ -13,7 +13,6 @@
         }
     ],
     "env": {
-        "PYTHONPATH": ".",
-        "PYTHONUNBUFFERED": "1"
+        "PYTHONPATH": "."
     }
 } 
