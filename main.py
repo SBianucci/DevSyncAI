@@ -15,6 +15,7 @@ import json
 import re
 from typing import Optional, Dict, Any
 from datetime import datetime
+import requests
 
 # Importar servicios y utilidades
 from services.github_service import GitHubService
@@ -270,4 +271,18 @@ async def list_jira_projects():
         return {"projects": projects}
     except Exception as e:
         logger.error(f"Error al obtener proyectos de Jira: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error al obtener proyectos de Jira") 
+        raise HTTPException(status_code=500, detail="Error al obtener proyectos de Jira")
+
+@app.get("/jira/me")
+async def jira_me():
+    """
+    Devuelve la información del usuario autenticado en Jira (debug de credenciales).
+    """
+    try:
+        url = f"{jira_service.base_url}/rest/api/3/myself"
+        response = requests.get(url, headers=jira_service.headers, auth=jira_service.auth)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error al obtener usuario de Jira: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al obtener usuario de Jira") 
