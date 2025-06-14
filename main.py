@@ -258,4 +258,16 @@ async def health_check() -> Dict[str, Any]:
             "jira": "ok",
             "ai": "ok"
         }
-    } 
+    }
+
+@app.get("/jira/projects")
+async def list_jira_projects():
+    """
+    Devuelve la lista de proyectos activos de Jira.
+    """
+    try:
+        projects = jira_service.get_projects()
+        return {"projects": projects}
+    except Exception as e:
+        logger.error(f"Error al obtener proyectos de Jira: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error al obtener proyectos de Jira") 

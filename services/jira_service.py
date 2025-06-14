@@ -221,4 +221,28 @@ class JiraService:
             
         except requests.RequestException as e:
             logger.error(f"Error al obtener issue {issue_key}: {str(e)}")
+            raise
+
+    def get_projects(self) -> List[Dict[str, Any]]:
+        """
+        Obtiene la lista de proyectos activos de Jira.
+
+        Returns:
+            List[Dict[str, Any]]: Lista de proyectos
+
+        Raises:
+            requests.RequestException: Si hay error en la petición
+        """
+        url = f"{self.base_url}/rest/api/3/project/search?status=live"
+        try:
+            response = requests.get(
+                url,
+                headers=self.headers,
+                auth=self.auth
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("values", data)  # Puede ser 'values' o lista directa
+        except requests.RequestException as e:
+            logger.error(f"Error al obtener proyectos de Jira: {str(e)}")
             raise 
